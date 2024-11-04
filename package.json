@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node": "^22.11.0"
+  },
+  "name": "save-read-later",
+  "version": "1.0.0",
+  "description": "A program that allows you to take notes, save needed text, and share it with your friends",
+  "main": "index.js",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jest": "^28.8.3",
+    "eslint-plugin-prettier": "^5.2.1",
+    "globals": "^15.11.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3"
+  },
+  "scripts": {
+    "start": "live-server --port=8080 --watch=src --browser=firefox",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "dev": "npm run lint && wnpm run test && npm run start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
