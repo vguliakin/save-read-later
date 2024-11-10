@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Color Changer",
+    "description": "Uses the context menu to change a color on the page",
+    "version": "1.0",
+    "permissions": ["contextMenus", "storage"],
+    "background": {
+      "service_worker": "background.js",
+      "type": "module"
+    },
+    "action": {
+      "default_popup": "popup/popup.html"
+    },
+    "icons": {
+      "16": "images/16.png",
+      "32": "images/32.png",
+      "48": "images/48.png",
+      "128": "images/128.png"
+    }
+  }
