@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Color Changer",
-    "description": "Uses the context menu to change a color on the page",
+    "name": "Note System",
+    "description": "Uses to save selected text",
     "version": "1.0",
     "permissions": ["contextMenus", "storage"],
     "background": {

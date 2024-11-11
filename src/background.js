@@ -7,14 +7,18 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-    // Check if the correct menu item was clicked and if text was selected
-    if (info.menuItemId === "saveToBrain" && info.selectionText) {
-
-        chrome.storage.local.get({ selectedTextList: [] }, (data) => {
-
-            const updatedList = [...data.selectedTextList, info.selectionText];
-
-            chrome.storage.local.set({ selectedTextList: updatedList });
-        });
+    try {
+        // Check if the correct menu item was clicked and if text was selected
+        if (info.menuItemId === "saveToBrain" && info.selectionText) {
+    
+            chrome.storage.local.get({ selectedTextList: [] }, (data) => {
+    
+                const updatedList = [...data.selectedTextList, info.selectionText];
+    
+                chrome.storage.local.set({ selectedTextList: updatedList });
+            });
+        }
+    } catch (error) {
+        console.error('Error handling context menu click:', error);
     }
 });
