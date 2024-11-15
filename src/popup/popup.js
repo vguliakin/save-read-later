@@ -4,8 +4,9 @@ import {
 } from './storage.js';
 import { displayList, resetList } from './text_list.js';
 
+
 document.addEventListener('DOMContentLoaded', () => {
-  const listElement = document.querySelector('ul');
+  const listElement = document.querySelector('#notes-list');
   const emptyList = document.querySelector('#empty_list');
   const btnReset = document.querySelector('.btn_reset');
 

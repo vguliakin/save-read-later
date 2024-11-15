@@ -1,3 +1,7 @@
+
+/** 
+ * Sets up the context menu item when the extension is installed.
+*/
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
         id: "saveToBrain",
@@ -6,9 +10,17 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
+
+/**  
+ * Handles the click event for the context menu item.
+ * Adds the selected text to the stored list in a local storage.
+ * 
+ * @param info - Information about the item clicked and the selected text.
+ * @param tab - The details of the active tab at the time of the click event
+*/
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     try {
-        // Check if the correct menu item was clicked and if text was selected
+
         if (info.menuItemId === "saveToBrain" && info.selectionText) {
     
             chrome.storage.local.get({ selectedTextList: [] }, (data) => {
