@@ -27,10 +27,17 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     
                 const updatedList = [...data.selectedTextList, info.selectionText];
     
-                chrome.storage.local.set({ selectedTextList: updatedList });
+                chrome.storage.local.set({ selectedTextList: updatedList }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error saving data:', chrome.runtime.lastError.message);
+                    } else {
+                        chrome.tabs.sendMessage(tab.id, { action: "showFeedback", text: info.selectionText })
+                    }
+                });
             });
         }
     } catch (error) {
         console.error('Error handling context menu click:', error);
     }
 });
+

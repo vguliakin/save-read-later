@@ -1,24 +1,41 @@
 {
-    "manifest_version": 3,
-    "name": "Note System",
-    "description": "Uses to save selected text",
-    "version": "1.0",
-    "permissions": ["contextMenus", "storage"],
-    "background": {
-      "service_worker": "background.js",
-      "type": "module"
-    },
-    "action": {
-      "default_popup": "popup/popup.html"
-    },
-    "web_accessible_resources": [{
+  "manifest_version": 3,
+  "name": "Note System",
+  "description": "Uses to save selected text",
+  "version": "1.0",
+  "permissions": ["contextMenus", "storage", "activeTab"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "web_accessible_resources": [
+    {
       "resources": ["popup/*.js"],
       "matches": ["<all_urls>"]
-    }],
-    "icons": {
-      "16": "images/16.png",
-      "32": "images/32.png",
-      "48": "images/48.png",
-      "128": "images/128.png"
+    }
+  ],
+  "icons": {
+    "16": "images/16.png",
+    "32": "images/32.png",
+    "48": "images/48.png",
+    "128": "images/128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["scripts/content.js"]
+    }
+  ],
+  "commands": {
+    "add_text": {
+      "suggested_key": {
+        "default": "Ctrl+Y",
+        "mac": "Command+K"
+      },
+      "description": "Add a selected text to the notes list."
     }
   }
+}
