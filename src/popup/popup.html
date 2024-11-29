@@ -1,36 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="popup.css">
-        <script defer type="module" src="popup.js"></script>
-    </head>
-    <body>
-        <template id="li_template">
-            <li class="note">
-                <span class="note-text">No text yet</span>
-                <div class="note-actions">
-                    <button class="delete-btn">Delete</button>
-                </div>
-            </li>
-        </template>
-        
-        <div class="header">
-            <div class="logo-container">
-                <img src="../images/48.png" alt="Read And Save" class="logo">
-            </div>
-            <div class="title">
-                Notes Extension
-            </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+    <script defer type="module" src="popup.js"></script>
+  </head>
+  <body>
+    <template id="li_template">
+      <li class="note">
+        <span class="note-text">No text yet</span>
+        <div class="note-actions">
+          <button class="delete-btn">Delete</button>
+          <button class="edit-btn">Edit</button>
         </div>
+      </li>
+    </template>
 
-        <div id="notes-container">
-            
-            <!-- <div id="selectedText">Selected Text</div> -->
-            <div id="empty_list" class="disabled"> No notes </div>
-            <ul id="notes-list"></ul>
-        </div>
-        <button class="btn_reset"> Reset list </button>
-    </body>
-    </html>
+    <template id="edit_template"> 
+      <li class="edit-note">
+        <input type="text" class="text-input">
+        <button class="save-btn">Save</button>
+        <button class="cancel-btn">Cancel</button>
+      </li>
+    </template>
+
+    <div class="header">
+      <div class="logo-container">
+        <img src="../images/48.png" alt="Read And Save" class="logo" />
+      </div>
+      <div class="title">Notes Extension</div>
+    </div>
+
+    <div id="notes-container">
+      <!-- <div id="selectedText">Selected Text</div> -->
+      <div id="empty_list" class="disabled">No notes</div>
+      <ul id="notes-list"></ul>
+    </div>
+    <button class="btn_reset">Reset list</button>
+  </body>
+</html>

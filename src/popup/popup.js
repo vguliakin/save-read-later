@@ -1,9 +1,5 @@
-import {
-  getSelectedTextList,
-  clearSelectedTextList,
-} from './storage.js';
+import { getSelectedTextList, clearSelectedTextList } from './storage.js';
 import { displayList, resetList } from './text_list.js';
-
 
 document.addEventListener('DOMContentLoaded', () => {
   const listElement = document.querySelector('#notes-list');
