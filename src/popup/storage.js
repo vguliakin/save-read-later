@@ -28,11 +28,13 @@ export function getSelectedTextList(displayList) {
  * @returns {void}
  */
 export function updateSelectedTextList(updatedList, callback) {
+
   chrome.storage.local.set({ selectedTextList: updatedList }, () => {
     if (chrome.runtime.lastError) {
       console.error('Error updating storage:', chrome.runtime.lastError);
     }
 
+    console.log(updatedList);
     callback();
   });
 }

@@ -1,22 +1,27 @@
-import { updateSelectedTextList } from './storage.js';
+import { getSelectedTextList, updateSelectedTextList } from './storage.js';
 
 let currentEditingItem = null;
+
 /**
  * Displays a list of texts on the UI (popup window).
  * If the list is empty, it will display message that the list is empty.
  *
- * @param {Array<string>} list - The list of texts to display.
- * @param {HTMLElement} listElement - The HTML element where the list items will be added.
- * @param {HTMLElement} emptyListElement - The HTML element shown a message when the list is empty.
+ * @param {Array<string>} selectedTextList - The list of texts to display.
+ * @param {HTMLElement} notesListElement - The HTML element where the list items will be added.
+ * @param {HTMLElement} labelEmptyList - The label shows a message when the list is empty.
  * @returns {void}
  */
-export function displayList(list, listElement, emptyListElement) {
-  if (!list || list.length === 0) {
-    emptyListElement.classList.remove('disabled');
+export function displayList(
+  selectedTextList,
+  notesListElement,
+  labelEmptyList
+) {
+  if (!selectedTextList || selectedTextList.length === 0) {
+    labelEmptyList.classList.remove('disabled');
   } else {
-    emptyListElement.classList.add('disabled');
-    list.forEach((text, index) => {
-      cloneText(text, index, listElement);
+    labelEmptyList.classList.add('disabled');
+    selectedTextList.forEach((text, index) => {
+      cloneText(text, index, notesListElement);
     });
   }
 }
@@ -27,8 +32,8 @@ export function displayList(list, listElement, emptyListElement) {
  * @returns {void}
  */
 export function resetList() {
-  const listElement = document.querySelector('#notes-list');
-  listElement.innerHTML = '';
+  const notesListElement = document.querySelector('#notes-list');
+  notesListElement.innerHTML = '';
 }
 
 /**
@@ -37,90 +42,69 @@ export function resetList() {
  *
  * @param {String} text - The text to display in the list item.
  * @param {Number} index - The index of the text in the list, used for indentify the item to delete.
- * @param {HTMLElement} listElement - The HTML element to which the cloned item will be appended.
+ * @param {HTMLElement} notesListElement - The HTML element to which the cloned item will be appended.
  * @returns {HTMLElement} - Returns the list item which was created.
  *
  * @todo Seperate the logic of creating items and setting up the buttons
  */
-export function cloneText(text, index, listElement) {
+export function cloneText(text, index, notesListElement) {
+  // UI Note Template
   const template = document.querySelector('#li_template');
-  const element = template.content.cloneNode(true);
+  const noteElement = template.content.cloneNode(true);
 
-  const listItem = element.querySelector('li');
-  const btnDelete = element.querySelector('.delete-btn');
-  const btnEdit = element.querySelector('.edit-btn');
+  // UI List of Notes
+  const listElement = noteElement.querySelector('li');
 
-  btnDelete.addEventListener('click', () => deleteText(index, listItem));
-  btnEdit.addEventListener('click', () =>
-    editNote(index, listItem, text, listElement)
+  // UI Buttons
+  const deleteButton = noteElement.querySelector('.delete-btn');
+  const editButton = noteElement.querySelector('.edit-btn');
+
+  // Sets the selected text as a Note
+  listElement.querySelector('.note-text').textContent = text;
+  // =========================================================
+
+  // Button Handlers
+  deleteButton.addEventListener('click', () =>
+    deleteHandler(index, listElement)
+  );
+  editButton.addEventListener('click', () =>
+    editHandler(index, listElement, text, notesListElement)
   );
 
-  listItem.addEventListener('mouseenter', () => {
-    listItem.classList.add('.hover');
-  });
+  // Sets the CSS style for Notes element
+  setNotesListUIBehavior(listElement);
 
-  listItem.addEventListener('mouseleave', () => {
-    listItem.classList.remove('.hover');
-  });
+  notesListElement.appendChild(noteElement);
 
-  listItem.addEventListener('click', () => {
-    document
-      .querySelectorAll('.note')
-      .forEach((n) => n.classList.remove('selected'));
-
-    listItem.classList.add('selected');
-  });
-
-  listItem.querySelector('.note-text').textContent = text;
-  listElement.appendChild(element);
-
-  return listItem;
+  return listElement;
 }
 
-function editNote(i, ee, text, li) {
+function editHandler(index, listElement, text, notesListElement) {
+  // UI Edit Template
   const template = document.querySelector('#edit_template');
-  const element = template.content.firstElementChild.cloneNode(true);
+  const noteEditElement = template.content.firstElementChild.cloneNode(true);
 
-  const inputField = element.querySelector('.text-input');
-  const btnSave = element.querySelector('.save-btn');
-  const btnCancel = element.querySelector('.cancel-btn');
+  // UI Edit Template Elements
+  const inputField = noteEditElement.querySelector('.text-input');
+  const btnSave = noteEditElement.querySelector('.save-btn');
+  const btnCancel = noteEditElement.querySelector('.cancel-btn');
+
+  // ================================
 
   inputField.value = text;
 
-  if (currentEditingItem) {
-    const { originalItem, parentElement } = currentEditingItem;
+  // Checks whether any items are currently being edited
+  isEditing();
 
-    parentElement.replaceChild(originalItem, currentEditingItem.editElement);
-    currentEditingItem = null;
-  }
+  // Changes the state of the item to Edit
+  changeStateToEdit(listElement, noteEditElement, notesListElement);
 
-  ee.replaceWith(element);
-
-  currentEditingItem = {
-    originalItem: ee,
-    parentElement: li,
-    editElement: element,
-  };
-
-  btnSave.addEventListener('click', () => {
-    const updatedText = inputField.value;
-
-    chrome.storage.local.get({ selectedTextList: [] }, (data) => {
-      const updatedList = data.selectedTextList;
-      updatedList[i] = updatedText;
-
-      updateSelectedTextList(updatedList, () => {
-        resetList(li);
-        displayList(updatedList, li, document.querySelector('#empty_list'));
-
-        currentEditingItem = null;
-      });
-    });
-  });
+  btnSave.addEventListener('click', () =>
+    saveEditedNote(noteEditElement, inputField, index, listElement)
+  );
 
   btnCancel.addEventListener('click', () => {
-    element.replaceWith(ee);
-
+    noteEditElement.replaceWith(listElement);
     currentEditingItem = null;
   });
 }
@@ -135,21 +119,124 @@ function editNote(i, ee, text, li) {
  *
  * @todo Seperate the code on two functions, one for storage logic another for UI logic
  */
-function deleteText(index, listItem) {
+function deleteHandler(index, listItem) {
   const emptyList = document.querySelector('#empty_list');
 
   chrome.storage.local.get({ selectedTextList: [] }, (data) => {
-    const updatedList = data.selectedTextList;
+    let updatedList = data.selectedTextList;
 
-    if (updatedList && index > -1) {
+    console.log("Before deletion:", updatedList);
+
+    if (updatedList && index > -1 && index < updatedList.length) {
       updatedList.splice(index, 1);
 
       updateSelectedTextList(updatedList, () => {
+        getSelectedTextList((latestList) => {
+          resetList();
+          displayList(latestList, document.querySelector('#notes-list'), emptyList);
+
+          if (latestList.length === 0) {
+            emptyList.classList.remove('disabled');
+          }
+
+        })
+
+        listItem.remove();
+        
         if (updatedList.length === 0) {
           emptyList.classList.remove('disabled');
         }
-        listItem.remove();
+        console.log(`List = ${updatedList}`);
       });
     }
+  });
+}
+
+function setNotesListUIBehavior(listElement) {
+  listElement.addEventListener('mouseenter', () => {
+    listElement.classList.add('.hover');
+  });
+
+  listElement.addEventListener('mouseleave', () => {
+    listElement.classList.remove('.hover');
+  });
+
+  listElement.addEventListener('click', () => {
+    document
+      .querySelectorAll('.note')
+      .forEach((n) => n.classList.remove('selected'));
+
+    listElement.classList.add('selected');
+  });
+}
+
+function isEditing() {
+  if (currentEditingItem) {
+    const { originalItem, parentElement } = currentEditingItem;
+
+    // Ensure DOM elements are still valid
+    if (originalItem && parentElement.contains(currentEditingItem.editElement)) {
+      parentElement.replaceChild(originalItem, currentEditingItem.editElement);
+    }
+
+    currentEditingItem = null;
+  }
+}
+
+function changeStateToEdit(listElement, noteEditElement, notesListElement) {
+  listElement.replaceWith(noteEditElement);
+
+  currentEditingItem = {
+    originalItem: listElement,
+    parentElement: notesListElement,
+    editElement: noteEditElement,
+  };
+}
+
+function saveEditedNote(noteEditElement, inputField, index, listElement) {
+  const updatedText = inputField.value.trim(); // Trim any extra spaces
+
+  if (!updatedText) {
+    alert('Note text cannot be empty!');
+    return;
+  }
+
+  chrome.storage.local.get({ selectedTextList: [] }, (data) => {
+    const updatedList = data.selectedTextList || [];
+
+    console.log('Before Save: ', updatedList); // Debugging log
+
+    // Update the text at the correct index
+    const duplicateIndex = updatedList.findIndex(
+      (item, i) => item === updatedText && i !== index
+    );
+    if (duplicateIndex !== -1) {
+      alert("This note already exists!");
+      return;
+    }
+
+    if (updatedList.includes(updatedText)) {
+      alert("This note already exists!");
+      return;
+    }
+    
+
+    console.log('After Update: ', updatedList); // Debugging log
+
+
+    updateSelectedTextList(updatedList, () => {
+      const updatedListElement = cloneText(
+        updatedText,
+        index,
+        listElement
+      );
+
+      noteEditElement.replaceWith(updatedListElement);
+
+      // resetList(notesListElement);
+      // displayList(updatedList, notesListElement, document.querySelector('#empty_list'));
+
+      currentEditingItem = null;
+    });
   });
 }
