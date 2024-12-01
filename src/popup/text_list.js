@@ -17,9 +17,12 @@ export function displayList(
   labelEmptyList
 ) {
   if (!selectedTextList || selectedTextList.length === 0) {
+
     labelEmptyList.classList.remove('disabled');
+
   } else {
     labelEmptyList.classList.add('disabled');
+
     selectedTextList.forEach((text, index) => {
       cloneText(text, index, notesListElement);
     });
@@ -61,7 +64,6 @@ export function cloneText(text, index, notesListElement) {
 
   // Sets the selected text as a Note
   listElement.querySelector('.note-text').textContent = text;
-  // =========================================================
 
   // Button Handlers
   deleteButton.addEventListener('click', () =>
@@ -79,6 +81,16 @@ export function cloneText(text, index, notesListElement) {
   return listElement;
 }
 
+/**
+ * Edit Handler that is triggered when the user clicks on 'Edit' button
+ * and changes the status of the note to Edit
+ *
+ * @param {Number} index - The index of the text in the list, used for indentify the item to delete.
+ * @param {HTMLElement} listElement - Note element with buttons and text
+ * @param {String} text - The text to display in the list item.
+ * @param {HTMLElement} notesListElement - The HTML element to which the cloned item will be appended.
+ *
+ */
 function editHandler(index, listElement, text, notesListElement) {
   // UI Edit Template
   const template = document.querySelector('#edit_template');
@@ -89,12 +101,10 @@ function editHandler(index, listElement, text, notesListElement) {
   const btnSave = noteEditElement.querySelector('.save-btn');
   const btnCancel = noteEditElement.querySelector('.cancel-btn');
 
-  // ================================
-
   inputField.value = text;
 
   // Checks whether any items are currently being edited
-  isEditing();
+  resetLastEditNote();
 
   // Changes the state of the item to Edit
   changeStateToEdit(listElement, noteEditElement, notesListElement);
@@ -170,7 +180,7 @@ function setNotesListUIBehavior(listElement) {
   });
 }
 
-function isEditing() {
+function resetLastEditNote() {
   if (currentEditingItem) {
     const { originalItem, parentElement } = currentEditingItem;
 
