@@ -1,13 +1,11 @@
-/**
- * Sets up the context menu item when the extension is installed.
- */
-chrome.runtime.onInstalled.addListener(() => {
+
+function setupContextMenu() {
   chrome.contextMenus.create({
     id: 'saveToBrain',
     title: 'Add random color to Popup',
     contexts: ['selection'],
   });
-});
+}
 
 /**
  * Handles the click event for the context menu item.
@@ -16,7 +14,7 @@ chrome.runtime.onInstalled.addListener(() => {
  * @param info - Information about the item clicked and the selected text.
  * @param tab - The details of the active tab at the time of the click event
  */
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+function handleContextMenuClick(info, tab) {
   try {
     if (info.menuItemId === 'saveToBrain' && info.selectionText) {
       chrome.storage.local.get({ selectedTextList: [] }, (data) => {
@@ -40,4 +38,16 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   } catch (error) {
     console.error('Error handling context menu click:', error);
   }
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  setupContextMenu();
 });
+
+chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
+
+
+module.exports = {
+  setupContextMenu, 
+  handleContextMenuClick,
+};
