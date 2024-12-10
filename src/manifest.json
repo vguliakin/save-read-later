@@ -3,7 +3,7 @@
   "name": "Note System",
   "description": "Uses to save selected text",
   "version": "1.0",
-  "permissions": ["contextMenus", "storage", "activeTab"],
+  "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -26,7 +26,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["scripts/content.js"]
+      "js": ["scripts/content.js"],
+      "type": "module"
     }
   ],
   "commands": {

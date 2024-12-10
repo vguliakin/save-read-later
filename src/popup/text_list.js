@@ -109,6 +109,8 @@ function editHandler(index, listElement, text, notesListElement) {
   // Changes the state of the item to Edit
   changeStateToEdit(listElement, noteEditElement, notesListElement);
 
+  inputField.style.height = inputField.scrollHeight + 'px';
+
   btnSave.addEventListener('click', () =>
     saveEditedNote(noteEditElement, inputField, index, listElement)
   );
@@ -203,38 +205,66 @@ function changeStateToEdit(listElement, noteEditElement, notesListElement) {
   };
 }
 
+function showError(noteEditElement, message) {
+  const existingError = noteEditElement.parentNode.querySelector('.error-message');
+
+  if (existingError) {
+    existingError.remove();
+  }
+
+  const errorMessage = document.createElement('span');
+  errorMessage.className = 'error-message';
+  errorMessage.textContent = message;
+
+  noteEditElement.parentNode.appendChild(errorMessage);
+}
+
 function saveEditedNote(noteEditElement, inputField, index, listElement) {
   const updatedText = inputField.value.trim(); // Trim any extra spaces
-
+  
   if (!updatedText) {
-    alert('Note text cannot be empty!');
-    return;
+    showError(noteEditElement, 'Note text cannot be empty!');
+    return
+  } else {
+    const existingError = noteEditElement.parentNode.querySelector('.error-message');
+    if (existingError) {
+      existingError.remove();
+    }
   }
 
   chrome.storage.local.get({ selectedTextList: [] }, (data) => {
     const updatedList = data.selectedTextList || [];
 
-    console.log('Before Save: ', updatedList); // Debugging log
-
     // Update the text at the correct index
     const duplicateIndex = updatedList.findIndex(
       (item, i) => item === updatedText && i !== index
     );
-    if (duplicateIndex !== -1) {
-      alert("This note already exists!");
-      return;
-    }
 
-    if (updatedList.includes(updatedText)) {
-      alert("This note already exists!");
-      return;
-    }
+    const originalText = updatedList[index];
     
+    if (updatedText === originalText) {
+      return;
+    }
 
-    console.log('After Update: ', updatedList); // Debugging log
+    updatedList[index] = updatedText;
 
+    // if (duplicateIndex !== -1) {
+    //   showError(noteEditElement, 'Note text cannot be empty!');
+    //   return
+    // }
 
+    // if (updatedList.includes(updatedText)) {
+    //   showError(noteEditElement, 'Note text cannot be empty!');
+    //   return
+    // }
+  
     updateSelectedTextList(updatedList, () => {
+
+      if (chrome.runtime.lastError) {
+        showError(noteEditElement, 'Failed to save note. Please try again.');
+        return;
+      }
+
       const updatedListElement = cloneText(
         updatedText,
         index,

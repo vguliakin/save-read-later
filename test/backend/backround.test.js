@@ -1,4 +1,8 @@
-const { setupContextMenu, handleContextMenuClick } = require('../src/background');
+/**
+ * @jest-environment node
+ */
+
+const { setupContextMenu, handleContextMenuClick } = require('../../src/background');
 
 // Helper function to reset mocks before each test
 beforeEach(() => {

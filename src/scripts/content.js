@@ -1,6 +1,34 @@
+const messages = [
+  "Noted.",
+  "Got it.",
+  "Boom. Stored.",
+  "Done. What’s next?",
+  "Nice. It’s in.",
+  "Added. Next move?",
+  "Boom. It’s saved.",
+  "Snagged it!",
+  "Locked and loaded.",
+  "Noted for posterity.",
+  "Idea secured. Carry on.",
+  "Another win. Stored.",
+  "Clean save. Nice work.",
+  "Consider it done.",
+  "Good move. It’s safe.",
+  "All set. What’s next?",
+  "Done deal.",
+  "Cool. It’s saved.",
+  "Stacking ideas like pros."
+];
+
+function getRandomMessage(messages) {
+  const randomIndex = Math.floor(Math.random() * messages.length);
+  return messages[randomIndex];
+}
+
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === 'showFeedback') {
-    showToast(`Successfully added: "${message.text}"`);
+    message = getRandomMessage(messages);
+    showToast(message);
   }
 });
 
@@ -47,4 +75,8 @@ function showToast(message) {
       style.remove();
     }, 500);
   }, 3000);
+}
+
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports = { showToast };
 }

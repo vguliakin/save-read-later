@@ -47,7 +47,9 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
 
 
-module.exports = {
-  setupContextMenu, 
-  handleContextMenuClick,
-};
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports = {
+    setupContextMenu,
+    handleContextMenuClick,
+  };
+}

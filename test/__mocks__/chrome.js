@@ -9,6 +9,9 @@ global.chrome = {
     onInstalled: {
       addListener: jest.fn(),
     },
+    onMessage: {
+      addListener: jest.fn(),
+    },
     lastError: null,
   },
   storage: {
