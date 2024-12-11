@@ -1,4 +1,6 @@
 import { getSelectedTextList, updateSelectedTextList } from './storage.js';
+import { enableDragAndDrop } from './dragAndDrop.js';
+
 
 let currentEditingItem = null;
 
@@ -26,6 +28,8 @@ export function displayList(
     selectedTextList.forEach((text, index) => {
       cloneText(text, index, notesListElement);
     });
+
+    enableDragAndDrop(notesListElement);
   }
 }
 
@@ -57,6 +61,8 @@ export function cloneText(text, index, notesListElement) {
 
   // UI List of Notes
   const listElement = noteElement.querySelector('li');
+  listElement.setAttribute('draggable', true);
+  listElement.dataset.index = index;
 
   // UI Buttons
   const deleteButton = noteElement.querySelector('.delete-btn');

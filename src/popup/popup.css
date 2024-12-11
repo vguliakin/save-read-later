@@ -1,4 +1,4 @@
-/* General Reset and Defaults */
+/* General Reset and Defaults ============================================================ */
 * {
   margin: 0;
   padding: 0;
@@ -9,16 +9,31 @@
 body {
   width: 400px;
   margin: 0 auto;
-  padding: 0;
 }
 
-/* Header Section */
+/* Common Variables ============================================================ */
+:root {
+  --primary-color: #5bc0de;
+  --hover-color: #31b0d5;
+  --danger-color: #c9302c;
+  --danger-bg: #f2dede;
+  --danger-border: #ebcccc;
+  --text-color: #333;
+  --secondary-bg: #f9f9f9;
+  --border-color: #ddd;
+  --highlight-color: #e6f7ff;
+  --highlight-border: #b3e5fc;
+  --selected-bg: #d9edf7;
+  --selected-border: #bce8f1;
+}
+
+/* Header Section ============================================================ */
 .header {
   display: flex;
   align-items: center;
   padding: 10px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #ddd;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border-color);
   border-radius: 8px 8px 0 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -40,35 +55,36 @@ body {
 .title {
   font-size: 16px;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
-/* Main Container */
+/* Main Container ============================================================ */
 #notes-container {
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
   padding: 15px;
-  background-color: #f9f9f9;
+  background-color: var(--secondary-bg);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Empty List Placeholder */
+/* Empty List Placeholder ============================================================ */
 #empty_list {
   text-align: center;
   color: #999;
   font-size: 14px;
-  margin: 15px 0 0 0;
+  margin-top: 15px;
 }
 
-.disabled {
+.disabled,
+.hidden {
   display: none;
 }
 
-/* Notes List */
+/* Notes List ============================================================ */
 ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
   margin: 0;
 }
@@ -76,156 +92,156 @@ ul {
 .note,
 .edit-note {
   position: relative;
-  padding: 10px 15px;
-  margin: 8px 0;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition:
-    background-color 0.3s,
-    border-color 0.3s;
+  padding: 10px 15px;
+  margin: 8px 0;
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
-/* Hover Effect for Notes */
+/* Hover and Selected Effects ============================================================ */
 .note:hover,
 .edit-note:hover {
-  background-color: #e6f7ff;
-  border-color: #b3e5fc;
+  background-color: var(--highlight-color);
+  border-color: var(--highlight-border);
 }
 
-/* Highlighted (Selected) Note */
 .note.selected {
-  background-color: #d9edf7;
-  border-color: #bce8f1;
+  background-color: var(--selected-bg);
+  border-color: var(--selected-border);
 }
 
-/* Note Text */
+/* Note Text ============================================================ */
 .note-text {
   flex-grow: 1;
   font-size: 14px;
-  color: #333;
-  margin-right: 80px; /* Leave space for the action buttons */
+  color: var(--text-color);
+  margin-right: 80px;
   word-break: break-word;
 }
 
-/* Action Buttons */
+/* Action Buttons ============================================================ */
 .note-actions {
-  display: none; /* Initially hidden */
+  display: none;
   position: absolute;
   top: 50%;
   right: 10px;
   transform: translateY(-50%);
-  gap: 5px; /* Space between buttons */
+  gap: 5px;
 }
 
 .note.selected .note-actions {
-  display: flex; /* Show buttons only for the selected note */
+  display: flex;
 }
 
-/* Buttons Styling */
+/* Buttons Styling ============================================================ */
+button {
+  padding: 4px 8px;
+  margin: 1px;
+  font-size: 12px;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--hover-color);
+}
+
 .note-button,
 .save-btn,
-.cancel-btn {
-  padding: 4px 8px;
-  margin: 1px;
-  font-size: 12px;
-  color: #ffffff;
-  background-color: #5bc0de; /* Default blue */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.note-button:hover,
-.save-btn:hover,
-.cancel-btn:hover,
-.edit-btn:hover {
-  background-color: #31b0d5;
-}
-
-.delete-btn,
+.cancel-btn,
 .edit-btn {
-  padding: 4px 8px;
-  margin: 1px;
-  font-size: 12px;
-  color: #ffffff;
-  background-color: #5bc0de; /* Default blue */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  background-color: var(--primary-color);
 }
 
-.delete-btn:hover {
-  background-color: #c9302c;
+.delete-btn {
+  background-color: var(--danger-color);
 }
 
+/* Text Input ============================================================ */
 .text-input {
   width: 100%;
   min-height: 50px;
-  max-height: 350px; 
-  overflow: hidden; 
-  font-family: Arial, sans-serif;
+  max-height: 350px;
+  overflow: hidden;
+  font-family: inherit;
   font-size: 14px;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box;
 }
 
+/* Error Message ============================================================ */
 .error-message {
   display: block;
-  color: #d9534f;
+  color: var(--danger-color);
   font-size: 12px;
   margin-top: 5px;
   padding: 2px 5px;
-  background-color: #f2dede;
-  border: 1px solid #ebcccc;
+  background-color: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 4px;
 }
 
-/* Edit Note Input */
+/* Edit Note Input ============================================================ */
 .edit-note .text-input {
   flex-grow: 1;
   padding: 8px 10px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
   margin-right: 8px;
+  border: 1px solid var(--border-color);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .edit-note .text-input:focus {
-  border-color: #5bc0de;
+  border-color: var(--primary-color);
   outline: none;
   box-shadow: 0 0 5px rgba(91, 192, 222, 0.5);
 }
 
-/* Reset Button */
+/* Reset Button ============================================================ */
 .btn_reset {
   width: 100%;
   padding: 10px;
-  background-color: #5bc0de;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
-  border-radius: 4px;
   font-size: 14px;
-  cursor: pointer;
   text-align: center;
   margin-top: 15px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
   transition: background-color 0.3s;
 }
 
 .btn_reset:hover {
-  background-color: #31b0d5;
+  background-color: var(--hover-color);
 }
 
-.hidden {
-  display: none;
+/* Drag-and-Drop ============================================================ */
+.note {
+  cursor: grab;
+  transition: box-shadow 0.3s;
+}
+
+.note.dragging {
+  opacity: 0.7;
+  background-color: #f0f8ff;
+  border-color: var(--primary-color);
+  cursor: grabbing;
+}
+
+.note-placeholder {
+  height: 40px;
+  background-color: var(--secondary-bg);
+  border: 1px dashed var(--border-color);
+  border-radius: 4px;
 }
