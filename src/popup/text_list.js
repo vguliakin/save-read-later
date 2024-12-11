@@ -211,8 +211,8 @@ function changeStateToEdit(listElement, noteEditElement, notesListElement) {
   };
 }
 
-function showError(noteEditElement, message) {
-  const existingError = noteEditElement.parentNode.querySelector('.error-message');
+function showError(inputField, message) {
+  const existingError = inputField.parentNode.querySelector('.error-message');
 
   if (existingError) {
     existingError.remove();
@@ -222,17 +222,17 @@ function showError(noteEditElement, message) {
   errorMessage.className = 'error-message';
   errorMessage.textContent = message;
 
-  noteEditElement.parentNode.appendChild(errorMessage);
+  inputField.parentNode.appendChild(errorMessage);
 }
 
 function saveEditedNote(noteEditElement, inputField, index, listElement) {
   const updatedText = inputField.value.trim(); // Trim any extra spaces
   
   if (!updatedText) {
-    showError(noteEditElement, 'Note text cannot be empty!');
+    showError(inputField, 'Note text cannot be empty!');
     return
   } else {
-    const existingError = noteEditElement.parentNode.querySelector('.error-message');
+    const existingError = inputField.parentNode.querySelector('.error-message');
     if (existingError) {
       existingError.remove();
     }
@@ -267,7 +267,7 @@ function saveEditedNote(noteEditElement, inputField, index, listElement) {
     updateSelectedTextList(updatedList, () => {
 
       if (chrome.runtime.lastError) {
-        showError(noteEditElement, 'Failed to save note. Please try again.');
+        showError(inputField, 'Failed to save note. Please try again.');
         return;
       }
 
