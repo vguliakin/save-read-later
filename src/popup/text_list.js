@@ -7,7 +7,7 @@ let currentEditingItem = null;
 /**
  * Displays a list of notes in the popup
  *
- * @param {{id: string, text: string}[]} notesList - The list of texts to display.
+ * @param {{id: string, text: string, url: string}[]} notesList - The list of texts to display.
  * @param {HTMLElement} notesListElement - The HTML element where the list items will be added.
  * @param {HTMLElement} labelEmptyList - The label shows a message when the list is empty.
  */
@@ -37,7 +37,7 @@ export function resetList() {
 
 /**
  * Creates a note element from the template.
- * @param {{id: string, text: string}[]} noteObj
+ * @param {{id: string, text: string, url: string}[]} noteObj
  */
 function createNoteElement(noteObj) {
   const template = document.querySelector('#note_item_template');
@@ -46,6 +46,7 @@ function createNoteElement(noteObj) {
 
   li.dataset.noteId = noteObj.id;
   li.querySelector('.note-text').textContent = noteObj.text;
+  li.dataset.url = noteObj.url;
 
   console.log('Create <li> with noteId:', li.dataset.noteId);
   return li;
@@ -215,6 +216,14 @@ function attachGlobalEventHandlers(notesListElement) {
         .querySelectorAll('.note')
         .forEach((n) => n.classList.remove('selected'));
       noteLi.classList.add('selected');
+    }
+
+    if (target.classList.contains('source-btn')) {
+      const noteUrl = noteLi.dataset.url;
+       
+      if (noteUrl) {
+        chrome.tabs.create({ url: noteUrl });
+      } 
     }
 
     if (target.classList.contains('edit-btn')) {

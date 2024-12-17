@@ -96,10 +96,6 @@ ul {
 }
 
 .note {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 10px 15px;
   margin: 8px 0;
   background-color: #fff;
@@ -133,19 +129,20 @@ ul {
 /* Action Buttons ============================================================ */
 .note-actions {
   display: none;
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%);
-  gap: 5px;
 }
 
 .note.selected .note-actions {
   display: flex;
+  margin-top: .5rem;
+  gap: 8px;
 }
 
 /* Buttons Styling ============================================================ */
-button {
+.source-btn {
+  text-decoration: none;
+}
+
+button, .source-btn {
   padding: 4px 8px;
   margin: 1px;
   font-size: 12px;
@@ -163,7 +160,8 @@ button:hover {
 .note-button,
 .save-btn,
 .cancel-btn,
-.edit-btn {
+.edit-btn,
+.source-btn {
   background-color: var(--primary-color);
 }
 

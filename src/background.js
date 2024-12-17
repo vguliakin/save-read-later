@@ -26,11 +26,13 @@ chrome.commands.onCommand.addListener(async (command) => {
           console.log('No text selected');
           return;
         }
+
         // TODO : maybe separate it
         const notes = await getNotes();
         const newNote = {
           id: generateUniqueID(),
-          text: response.selectedText.trim()
+          text: response.selectedText.trim(),
+          url: currentTab.url
         };
         const updatedNotes = [...notes, newNote];
 
@@ -60,6 +62,7 @@ function handleContextMenuClick(info, tab) {
       const newNote = {
         id: generateUniqueID(),
         text: info.selectionText.trim(),
+        url: tab.url
       };
 
       const updatedList = [...existingNotes, newNote];
