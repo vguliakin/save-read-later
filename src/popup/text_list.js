@@ -1,42 +1,34 @@
-import { getSelectedTextList, updateSelectedTextList } from './storage.js';
+import { saveNotes, getNotes } from '../utils/storage.js';
 import { enableDragAndDrop } from './dragAndDrop.js';
 
-
+/** @type {HTMLElement|null} */
 let currentEditingItem = null;
 
 /**
- * Displays a list of texts on the UI (popup window).
- * If the list is empty, it will display message that the list is empty.
+ * Displays a list of notes in the popup
  *
- * @param {Array<string>} selectedTextList - The list of texts to display.
+ * @param {{id: string, text: string}[]} notesList - The list of texts to display.
  * @param {HTMLElement} notesListElement - The HTML element where the list items will be added.
  * @param {HTMLElement} labelEmptyList - The label shows a message when the list is empty.
- * @returns {void}
  */
-export function displayList(
-  selectedTextList,
-  notesListElement,
-  labelEmptyList
-) {
-  if (!selectedTextList || selectedTextList.length === 0) {
-
+export function displayList(notesList, notesListElement, labelEmptyList) {
+  if (!notesList || notesList.length === 0) {
     labelEmptyList.classList.remove('disabled');
-
   } else {
     labelEmptyList.classList.add('disabled');
 
-    selectedTextList.forEach((text, index) => {
-      cloneText(text, index, notesListElement);
+    notesList.forEach((noteObj) => {
+      const listItem = createNoteElement(noteObj);
+      notesListElement.appendChild(listItem);
     });
 
     enableDragAndDrop(notesListElement);
+    attachGlobalEventHandlers(notesListElement);
   }
 }
 
 /**
- * Reset the entire list of selected texts.
- *
- * @returns {void}
+ * Remove all notes from the list.
  */
 export function resetList() {
   const notesListElement = document.querySelector('#notes-list');
@@ -44,245 +36,210 @@ export function resetList() {
 }
 
 /**
- * Clones a template list item and updates it with the selected text.
- * Sets up a delete button event listener to remove the item from the list.
- *
- * @param {String} text - The text to display in the list item.
- * @param {Number} index - The index of the text in the list, used for indentify the item to delete.
- * @param {HTMLElement} notesListElement - The HTML element to which the cloned item will be appended.
- * @returns {HTMLElement} - Returns the list item which was created.
- *
- * @todo Seperate the logic of creating items and setting up the buttons
+ * Creates a note element from the template.
+ * @param {{id: string, text: string}[]} noteObj
  */
-export function cloneText(text, index, notesListElement) {
-  // UI Note Template
-  const template = document.querySelector('#li_template');
+function createNoteElement(noteObj) {
+  const template = document.querySelector('#note_item_template');
   const noteElement = template.content.cloneNode(true);
+  const li = noteElement.querySelector('li');
 
-  // UI List of Notes
-  const listElement = noteElement.querySelector('li');
-  listElement.setAttribute('draggable', true);
-  listElement.dataset.index = index;
+  li.dataset.noteId = noteObj.id;
+  li.querySelector('.note-text').textContent = noteObj.text;
 
-  // UI Buttons
-  const deleteButton = noteElement.querySelector('.delete-btn');
-  const editButton = noteElement.querySelector('.edit-btn');
-
-  // Sets the selected text as a Note
-  listElement.querySelector('.note-text').textContent = text;
-
-  // Button Handlers
-  deleteButton.addEventListener('click', () =>
-    deleteHandler(index, listElement)
-  );
-  editButton.addEventListener('click', () =>
-    editHandler(index, listElement, text, notesListElement)
-  );
-
-  // Sets the CSS style for Notes element
-  setNotesListUIBehavior(listElement);
-
-  notesListElement.appendChild(noteElement);
-
-  return listElement;
+  console.log('Create <li> with noteId:', li.dataset.noteId);
+  return li;
 }
 
 /**
- * Edit Handler that is triggered when the user clicks on 'Edit' button
- * and changes the status of the note to Edit
+ * Switches a note element to the edit mode by replacing it with the edit template.
  *
- * @param {Number} index - The index of the text in the list, used for indentify the item to delete.
- * @param {HTMLElement} listElement - Note element with buttons and text
- * @param {String} text - The text to display in the list item.
- * @param {HTMLElement} notesListElement - The HTML element to which the cloned item will be appended.
- *
+ * @param {HTMLElement} originalItem
+ * @param {string} text
  */
-function editHandler(index, listElement, text, notesListElement) {
-  // UI Edit Template
-  const template = document.querySelector('#edit_template');
-  const noteEditElement = template.content.firstElementChild.cloneNode(true);
-
-  // UI Edit Template Elements
-  const inputField = noteEditElement.querySelector('.text-input');
-  const btnSave = noteEditElement.querySelector('.save-btn');
-  const btnCancel = noteEditElement.querySelector('.cancel-btn');
-
-  inputField.value = text;
-
-  // Checks whether any items are currently being edited
+function switchToEditMode(originalItem, text) {
   resetLastEditNote();
 
-  // Changes the state of the item to Edit
-  changeStateToEdit(listElement, noteEditElement, notesListElement);
+  const template = document.querySelector('#edit_item_template');
+  const editElement = template.content.cloneNode(true);
 
-  inputField.style.height = inputField.scrollHeight + 'px';
+  const editListElement = editElement.querySelector('li');
+  const inputField = editListElement.querySelector('.text-input');
 
-  btnSave.addEventListener('click', () =>
-    saveEditedNote(noteEditElement, inputField, index, listElement)
+  editListElement.dataset.noteId = originalItem.dataset.noteId;
+  console.log(
+    'Switching to edit mode. Copied noteId =',
+    originalItem.dataset.noteId
+  );
+  console.log(
+    'editListElement.dataset.noteId =',
+    editListElement.dataset.noteId
   );
 
-  btnCancel.addEventListener('click', () => {
-    noteEditElement.replaceWith(listElement);
-    currentEditingItem = null;
-  });
-}
+  originalItem.replaceWith(editListElement);
 
-/**
- * Deletes a text item from the selectedTextList stored in Chrome's local storage.
- * Updates the UI to reflect the changes by removing the list item and enabling the
- * "empty list" message if no items remain.
- *
- * @param {*} index
- * @param {*} listItem
- *
- * @todo Seperate the code on two functions, one for storage logic another for UI logic
- */
-function deleteHandler(index, listItem) {
-  const emptyList = document.querySelector('#empty_list');
-
-  chrome.storage.local.get({ selectedTextList: [] }, (data) => {
-    let updatedList = data.selectedTextList;
-
-    console.log("Before deletion:", updatedList);
-
-    if (updatedList && index > -1 && index < updatedList.length) {
-      updatedList.splice(index, 1);
-
-      updateSelectedTextList(updatedList, () => {
-        getSelectedTextList((latestList) => {
-          resetList();
-          displayList(latestList, document.querySelector('#notes-list'), emptyList);
-
-          if (latestList.length === 0) {
-            emptyList.classList.remove('disabled');
-          }
-
-        })
-
-        listItem.remove();
-        
-        if (updatedList.length === 0) {
-          emptyList.classList.remove('disabled');
-        }
-        console.log(`List = ${updatedList}`);
-      });
-    }
-  });
-}
-
-function setNotesListUIBehavior(listElement) {
-  listElement.addEventListener('mouseenter', () => {
-    listElement.classList.add('.hover');
-  });
-
-  listElement.addEventListener('mouseleave', () => {
-    listElement.classList.remove('.hover');
-  });
-
-  listElement.addEventListener('click', () => {
-    document
-      .querySelectorAll('.note')
-      .forEach((n) => n.classList.remove('selected'));
-
-    listElement.classList.add('selected');
-  });
-}
-
-function resetLastEditNote() {
-  if (currentEditingItem) {
-    const { originalItem, parentElement } = currentEditingItem;
-
-    // Ensure DOM elements are still valid
-    if (originalItem && parentElement.contains(currentEditingItem.editElement)) {
-      parentElement.replaceChild(originalItem, currentEditingItem.editElement);
-    }
-
-    currentEditingItem = null;
-  }
-}
-
-function changeStateToEdit(listElement, noteEditElement, notesListElement) {
-  listElement.replaceWith(noteEditElement);
+  inputField.value = text;
+  inputField.style.height = inputField.scrollHeight + 'px';
 
   currentEditingItem = {
-    originalItem: listElement,
-    parentElement: notesListElement,
-    editElement: noteEditElement,
+    originalItem,
+    parentElement: originalItem.parentElement,
+    editElement: editListElement,
   };
 }
 
+/**
+ * Resets the last edit note to its original state if any exists.
+ */
+function resetLastEditNote() {
+  if (
+    currentEditingItem &&
+    currentEditingItem.parentElement.contains(currentEditingItem.editElement)
+  ) {
+    currentEditingItem.editElement.replaceWith(currentEditingItem.originalItem);
+    currentEditingItem = null;
+  }
+}
+
+/**
+ * Shows an error message below the input field.
+ *
+ * @param {HTMLTextAreaElement} inputField
+ * @param {string} message
+ */
 function showError(inputField, message) {
   const existingError = inputField.parentNode.querySelector('.error-message');
 
-  if (existingError) {
-    existingError.remove();
-  }
+  if (existingError) existingError.remove();
 
   const errorMessage = document.createElement('span');
   errorMessage.className = 'error-message';
   errorMessage.textContent = message;
-
   inputField.parentNode.appendChild(errorMessage);
 }
 
-function saveEditedNote(noteEditElement, inputField, index, listElement) {
-  const updatedText = inputField.value.trim(); // Trim any extra spaces
-  
+/**
+ *
+ * @param {HTMLElement} editListElement
+ * @param {HTMLTextAreaElement} inputField
+ * @param {HTMLElement} originalItem
+ */
+async function saveEditedNote(editListElement, inputField, originalItem) {
+  const updatedText = inputField.value.trim();
+
   if (!updatedText) {
     showError(inputField, 'Note text cannot be empty!');
-    return
-  } else {
-    const existingError = inputField.parentNode.querySelector('.error-message');
-    if (existingError) {
-      existingError.remove();
-    }
+    return;
   }
 
-  chrome.storage.local.get({ selectedTextList: [] }, (data) => {
-    const updatedList = data.selectedTextList || [];
+  const noteId = editListElement.dataset.noteId;
 
-    // Update the text at the correct index
-    const duplicateIndex = updatedList.findIndex(
-      (item, i) => item === updatedText && i !== index
-    );
+  try {
+    const notes = await getNotes();
 
-    const originalText = updatedList[index];
-    
-    if (updatedText === originalText) {
+    const noteIndex = notes.findIndex((n) => n.id === noteId);
+    console.log(notes, noteId);
+    console.log(noteIndex);
+    if (noteIndex === -1) {
+      console.error('Invalid note index');
       return;
     }
 
-    updatedList[index] = updatedText;
-
-    // if (duplicateIndex !== -1) {
-    //   showError(noteEditElement, 'Note text cannot be empty!');
-    //   return
-    // }
-
-    // if (updatedList.includes(updatedText)) {
-    //   showError(noteEditElement, 'Note text cannot be empty!');
-    //   return
-    // }
-  
-    updateSelectedTextList(updatedList, () => {
-
-      if (chrome.runtime.lastError) {
-        showError(inputField, 'Failed to save note. Please try again.');
-        return;
-      }
-
-      const updatedListElement = cloneText(
-        updatedText,
-        index,
-        listElement
-      );
-
-      noteEditElement.replaceWith(updatedListElement);
-
-      // resetList(notesListElement);
-      // displayList(updatedList, notesListElement, document.querySelector('#empty_list'));
-
+    // If text is the same as original, just revert back
+    if (notes[noteIndex].text === updatedText) {
+      editListElement.replaceWith(originalItem);
       currentEditingItem = null;
-    });
+      return;
+    }
+
+    // Update the note text and save
+    notes[noteIndex].text = updatedText;
+
+    await saveNotes(notes);
+
+    const notesListElement = document.querySelector('#notes-list');
+    const labelEmptyList = document.querySelector('#empty_list');
+    resetList();
+    displayList(notes, notesListElement, labelEmptyList);
+
+    currentEditingItem = null;
+  } catch (err) {
+    console.error('Error saving edited note: ', err);
+    showError(inputField, 'Failed to save note. Please try again.');
+  }
+}
+
+/**
+ * Deletes a note by its unique ID.
+ *
+ * @param {string} noteId
+ */
+async function deleteNoteById(noteId) {
+  try {
+    const notes = await getNotes();
+    const updateNotes = notes.filter((n) => n.id !== noteId);
+
+    await saveNotes(updateNotes);
+
+    resetList();
+    displayList(
+      updateNotes,
+      document.querySelector('#notes-list'),
+      document.querySelector('#empty_list')
+    );
+  } catch (err) {
+    console.error('Error deleting note: ', err);
+  }
+}
+
+/**
+ * Attaches event delegation handlers for edit, delete, save, and cancel actions.
+ *
+ * @param {HTMLElement} notesListElement
+ */
+function attachGlobalEventHandlers(notesListElement) {
+  notesListElement.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    // Select a note
+    const noteLi = target.closest('.note, .edit-note');
+    console.log('Clicked <li> dataset:', noteLi.dataset);
+    console.log('Clicked noteId =', noteLi.dataset.noteId);
+
+    if (!noteLi) return;
+
+    // Clear selection of other notes
+    if (noteLi.classList.contains('note')) {
+      notesListElement
+        .querySelectorAll('.note')
+        .forEach((n) => n.classList.remove('selected'));
+      noteLi.classList.add('selected');
+    }
+
+    if (target.classList.contains('edit-btn')) {
+      const text = noteLi.querySelector('.note-text').textContent;
+      switchToEditMode(noteLi, text);
+    }
+
+    if (target.classList.contains('delete-btn')) {
+      const noteId = noteLi.dataset.noteId;
+      deleteNoteById(noteId);
+    }
+
+    if (target.classList.contains('save-btn')) {
+      const inputField = noteLi.querySelector('.text-input');
+      const originalItem = currentEditingItem?.originalItem;
+      saveEditedNote(noteLi, inputField, originalItem);
+    }
+
+    if (target.classList.contains('cancel-btn')) {
+      if (currentEditingItem) {
+        currentEditingItem.editElement.replaceWith(
+          currentEditingItem.originalItem
+        );
+        currentEditingItem = null;
+      }
+    }
   });
 }

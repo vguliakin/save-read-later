@@ -1,10 +1,21 @@
-
 function setupContextMenu() {
   chrome.contextMenus.create({
     id: 'saveToBrain',
     title: 'Add random color to Popup',
     contexts: ['selection'],
   });
+}
+
+/**
+ * Generates a simple unique ID if crypto.randomUUID is not available.
+ * @returns {string}
+ */
+function generateUniqueID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
 /**
@@ -15,28 +26,26 @@ function setupContextMenu() {
  * @param tab - The details of the active tab at the time of the click event
  */
 function handleContextMenuClick(info, tab) {
-  try {
-    if (info.menuItemId === 'saveToBrain' && info.selectionText) {
-      chrome.storage.local.get({ selectedTextList: [] }, (data) => {
-        const updatedList = [...data.selectedTextList, info.selectionText];
+  if (info.menuItemId === 'saveToBrain' && info.selectionText) {
+    chrome.storage.local.get({ selectedTextList: [] }, (data) => {
+      const existingNotes = data.selectedTextList || [];
 
-        chrome.storage.local.set({ selectedTextList: updatedList }, () => {
-          if (chrome.runtime.lastError) {
-            console.error(
-              'Error saving data:',
-              chrome.runtime.lastError.message
-            );
-          } else {
-            chrome.tabs.sendMessage(tab.id, {
-              action: 'showFeedback',
-              text: info.selectionText,
-            });
-          }
-        });
+      const newNote = {
+        id: generateUniqueID(),
+        text: info.selectionText.trim(),
+      };
+
+      const updatedList = [...existingNotes, newNote];
+
+      chrome.storage.local.set({ selectedTextList: updatedList }, () => {
+        const err = chrome.runtime.lastError;
+        if (err) {
+          console.error('Error saving data:', err.message);
+        } else {
+          chrome.tabs.sendMessage(tab.id, { action: 'showFeedback' });
+        }
       });
-    }
-  } catch (error) {
-    console.error('Error handling context menu click:', error);
+    });
   }
 }
 
@@ -45,7 +54,6 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
-
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
   module.exports = {

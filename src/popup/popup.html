@@ -2,14 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="popup.css" />
-    <script defer type="module" src="popup.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="../popup/popup.css"/>
+    <script defer type="module" src="../popup/popup.js"></script>
   </head>
   <body>
-    <template id="li_template">
-      <li class="note">
-        <span class="note-text">No text yet</span>
+    <template id="note_item_template">
+      <li class="note" draggable="true">
+        <span class="note-text"></span>
         <div class="note-actions">
           <button class="delete-btn">Delete</button>
           <button class="edit-btn">Edit</button>
@@ -17,7 +17,7 @@
       </li>
     </template>
 
-    <template id="edit_template"> 
+    <template id="edit_item_template">
       <li class="edit-note">
         <textarea class="text-input"></textarea>
         <div class="button-group">
@@ -35,7 +35,6 @@
     </div>
 
     <div id="notes-container">
-      <!-- <div id="selectedText">Selected Text</div> -->
       <span id="empty_list" class="disabled">No notes</span>
       <ul id="notes-list"></ul>
     </div>
