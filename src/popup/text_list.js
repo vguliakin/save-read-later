@@ -67,19 +67,19 @@ function switchToEditMode(originalItem, text) {
   const inputField = editListElement.querySelector('.text-input');
 
   editListElement.dataset.noteId = originalItem.dataset.noteId;
-  console.log(
-    'Switching to edit mode. Copied noteId =',
-    originalItem.dataset.noteId
-  );
-  console.log(
-    'editListElement.dataset.noteId =',
-    editListElement.dataset.noteId
-  );
 
   originalItem.replaceWith(editListElement);
 
   inputField.value = text;
   inputField.style.height = inputField.scrollHeight + 'px';
+
+  inputField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // disable newline insertion
+      const original = currentEditingItem?.originalItem;
+      saveEditedNote(editListElement, inputField, original); 
+    }
+  });
 
   currentEditingItem = {
     originalItem,
