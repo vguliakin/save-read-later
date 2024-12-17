@@ -1,3 +1,7 @@
+import { getNotes, saveNotes } from "./utils/storage.js";
+import { generateUniqueID } from "./utils/uuid.js";
+
+
 function setupContextMenu() {
   chrome.contextMenus.create({
     id: 'saveToBrain',
@@ -6,17 +10,40 @@ function setupContextMenu() {
   });
 }
 
-/**
- * Generates a simple unique ID if crypto.randomUUID is not available.
- * @returns {string}
- */
-function generateUniqueID() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'add_text') {
+    try {
+      const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!currentTab?.id) return;
 
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
+      chrome.tabs.sendMessage(currentTab.id, { action: 'getSelection' }, async (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error sending message to content script:', chrome.runtime.lastError);
+          return;
+        }
+
+        if (!response?.selectedText) {
+          console.log('No text selected');
+          return;
+        }
+        // TODO : maybe separate it
+        const notes = await getNotes();
+        const newNote = {
+          id: generateUniqueID(),
+          text: response.selectedText.trim()
+        };
+        const updatedNotes = [...notes, newNote];
+
+        await saveNotes(updatedNotes);
+        console.log('Note saved via shortcut:', newNote);
+
+        chrome.tabs.sendMessage(currentTab.id, { action: 'showFeedback' });
+      });
+    } catch (err) {
+      console.error('Error in onCommand add_text:', err);
+    }
+  }
+});
 
 /**
  * Handles the click event for the context menu item.

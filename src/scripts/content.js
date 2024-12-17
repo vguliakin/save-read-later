@@ -30,8 +30,11 @@ function getRandomMessage() {
   return messages[randomIndex];
 }
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.action === 'showFeedback') {
+chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
+  if (request.action === 'getSelection') {
+    const selected = window.getSelection().toString();
+    sendResponse({ selectedText: selected });
+  } else if (request.action === 'showFeedback') {
     showToast(getRandomMessage());
   }
 });
