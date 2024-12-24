@@ -58,6 +58,35 @@ body {
   color: var(--text-color);
 }
 
+/* Menu Actions and Icons ============================================================ */
+
+.menu-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.menu-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color .2s ease;
+  width: 32px;
+  height: 32px;
+}
+
+.menu-actions button:hover {
+  background-color: var(--highlight-color);
+}
+
+.menu-icon {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* Main Container ============================================================ */
 #notes-container {
   width: 100%;
@@ -248,3 +277,4 @@ button:hover {
   border: 1px dashed var(--border-color);
   border-radius: 4px;
 }
+
