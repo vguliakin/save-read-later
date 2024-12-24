@@ -1,3 +1,124 @@
+/**
+ * A class to handle the creation of a selection overlay
+ *
+ * The User can select are on the page
+ */
+class SelectionOverlay {
+  constructor() {
+    this.overlay = null;
+    // rectangle box that user can drag
+    this.box = null;
+    this.isSelecting = false;
+    this.startX = 0;
+    this.startY = 0;
+    this.currentX = 0;
+    this.currentY = 0;
+    // for scaled cropping (fixed the size)
+    this.dpr = window.devicePixelRatio || 1;
+  }
+
+  /**
+   * Creates the selection overlay
+   */
+  create() {
+    if (this.overlay) return;
+
+    this.overlay = document.createElement('div');
+    this.overlay.style = `
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      bottom: 0;
+      background: rgba(0,0,0,0.2);
+      cursor: crosshair;
+      z-index: 999999;
+    `;
+
+    this.box = document.createElement('div');
+    this.box.style = 'position:absolute; border:2px dashed #fff;';
+
+    this.overlay.appendChild(this.box);
+    document.body.appendChild(this.overlay);
+
+    this.onMouseDownBound = this.onMouseDown.bind(this);
+    this.onMouseMoveBound = this.onMouseMove.bind(this);
+    this.onMouseUpBound = this.onMouseUp.bind(this);
+
+    this.overlay.addEventListener('mousedown', this.onMouseDownBound);
+    this.overlay.addEventListener('mousemove', this.onMouseMoveBound);
+    this.overlay.addEventListener('mouseup', this.onMouseUpBound);
+  }
+
+  /**
+   * Removes the overlay
+   */
+  remove() {
+    if (!this.overlay) return;
+
+    this.overlay.removeEventListener('mousedown', this.onMouseDownBound);
+    this.overlay.removeEventListener('mousemove', this.onMouseMoveBound);
+    this.overlay.removeEventListener('mouseup', this.onMouseUpBound);
+
+    this.overlay.remove();
+    this.overlay = null;
+    this.box = null;
+  }
+
+  onMouseDown(e) {
+    this.isSelecting = true;
+    this.startX = e.clientX;
+    this.startY = e.clientY;
+    this.box.style.left = `${this.startX}px`;
+    this.box.style.top = `${this.startY}px`;
+    this.box.style.width = '0px';
+    this.box.style.height = '0px';
+  }
+
+  onMouseMove(e) {
+    if (!this.isSelecting) return;
+
+    this.currentX = e.clientX;
+    this.currentY = e.clientY;
+
+    const width = this.currentX - this.startX;
+    const height = this.currentY - this.startY;
+    this.box.style.left = `${Math.min(this.startX, this.currentX)}px`;
+    this.box.style.top = `${Math.min(this.startY, this.currentY)}px`;
+    this.box.style.width = `${Math.abs(width)}px`;
+    this.box.style.height = `${Math.abs(height)}px`;
+  }
+
+  onMouseUp(e) {
+    this.isSelecting = false;
+
+    const finalX = Math.min(this.startX, this.currentX);
+    const finalY = Math.min(this.startY, this.currentY);
+    const width = Math.abs(this.currentX - this.startX);
+    const height = Math.abs(this.currentY - this.startY);
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    // fix coords by DPR
+    const scaledX = (finalX + scrollX) * this.dpr;
+    const scaledY = (finalY + scrollY) * this.dpr;
+    const scaledW = width * this.dpr;
+    const scaledH = height * this.dpr;
+
+    // sends message to backround script
+    chrome.runtime.sendMessage({
+      action: 'selectedArea',
+      startX: scaledX,
+      startY: scaledY,
+      width: scaledW,
+      height: scaledH,
+    });
+
+    this.remove();
+  }
+}
+
 const messages = [
   'Noted.',
   'Got it.',
@@ -20,16 +141,12 @@ const messages = [
   'Stacking ideas like pros.',
 ];
 
-let selectionOverlay = null;
-let selectionBox = null;
-let isSelecting = false;
-let startX, startY, currentX, currentY;
-const devicePixelRatio = window.devicePixelRatio || 1;
+const selectionOverlay = new SelectionOverlay();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.action) {
     case 'startSelection':
-      createSelectionOverlay();
+      selectionOverlay.create();
       break;
     case 'getSelection':
       const selected = window.getSelection().toString();
@@ -42,85 +159,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       break;
   }
 });
-
-function createSelectionOverlay() {
-  // is it already exists
-  if (selectionOverlay) return;
-  console.log('Selection in progress..');
-  // css style
-  selectionOverlay = document.createElement('div');
-  selectionOverlay.style = `
-    position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.2);
-    cursor: crosshair;
-    z-index: 999999;
-  `;
-
-  selectionBox = document.createElement('div');
-  selectionBox.style = `position:absolute; border:2px dashed #fff;`;
-
-  selectionOverlay.append(selectionBox);
-  document.body.appendChild(selectionOverlay);
-
-  selectionOverlay.addEventListener('mousedown', onMouseDown);
-  selectionOverlay.addEventListener('mousemove', onMouseMove);
-  selectionOverlay.addEventListener('mouseup', onMouseUp);
-}
-
-function onMouseDown(e) {
-  isSelecting = true;
-  startX = e.clientX;
-  startY = e.clientY;
-  selectionBox.style.left = startX + 'px';
-  selectionBox.style.top = startY + 'px';
-  selectionBox.style.width = '0px';
-  selectionBox.style.height = '0px';
-}
-
-function onMouseMove(e) {
-  if (!isSelecting) return;
-
-  currentX = e.clientX;
-  currentY = e.clientY;
-
-  const width = currentX - startX;
-  const height = currentY - startY;
-
-  selectionBox.style.left = Math.min(startX, currentX) + 'px';
-  selectionBox.style.top = Math.min(startY, currentY) + 'px';
-  selectionBox.style.width = Math.abs(width) + 'px';
-  selectionBox.style.height = Math.abs(height) + 'px';
-}
-
-function onMouseUp(e) {
-  isSelecting = false;
-
-  const finalX = Math.min(startX, currentX);
-  const finalY = Math.min(startY, currentY);
-  const width = Math.abs(currentX - startX);
-  const height = Math.abs(currentY - startY);
-
-  const scrollX = window.scrollX;
-  const scrollY = window.scrollY;
-
-  const scaledX = (finalX + scrollX) * devicePixelRatio;
-  const scaledY = (finalY + scrollY) * devicePixelRatio;
-  const scaledW = width * devicePixelRatio;
-  const scaledH = height * devicePixelRatio;
-
-  const data = {
-    action: 'selectedArea',
-    startX: scaledX,
-    startY: scaledY,
-    width: scaledW,
-    height: scaledH,
-  };
-
-  chrome.runtime.sendMessage(data);
-
-  selectionOverlay.remove();
-  selectionOverlay = null;
-}
 
 /**
  * Returns a random feedback message from the global 'messages' array

@@ -35,11 +35,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           notes.push({
             id: generateUniqueID(),
             text: 'Screenshot Note',
-            image: response.dataUrl
+            image: response.dataUrl,
           });
 
           await saveNotes(notes);
-    
+
           chrome.tabs.sendMessage(currentTab.id, { action: 'showFeedback' });
         } else if (response.action === 'cropError') {
           chrome.runtime.onMessage.removeListener(handleCropResult);
@@ -50,11 +50,12 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       chrome.runtime.onMessage.addListener(handleCropResult);
 
       chrome.runtime.sendMessage({
-        action: 'cropImage', dataUrl,
+        action: 'cropImage',
+        dataUrl,
         sx: startX,
         sy: startY,
         sw: width,
-        sh: height
+        sh: height,
       });
     });
   }

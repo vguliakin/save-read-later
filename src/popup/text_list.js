@@ -84,7 +84,7 @@ function switchToEditMode(originalItem, text) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // disable newline insertion
       const original = currentEditingItem?.originalItem;
-      saveEditedNote(editListElement, inputField, original); 
+      saveEditedNote(editListElement, inputField, original);
     }
   });
 
@@ -226,10 +226,10 @@ function attachGlobalEventHandlers(notesListElement) {
 
     if (target.classList.contains('source-btn')) {
       const noteUrl = noteLi.dataset.url;
-       
+
       if (noteUrl) {
         chrome.tabs.create({ url: noteUrl });
-      } 
+      }
     }
 
     if (target.classList.contains('edit-btn')) {
