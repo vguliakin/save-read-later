@@ -3,7 +3,7 @@
   "name": "Note System",
   "description": "Uses to save selected text",
   "version": "1.0",
-  "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
+  "permissions": ["offscreen", "tabs", "contextMenus", "storage", "activeTab", "scripting"],
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -13,7 +13,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["popup/*.js"],
+      "resources": ["offscreen.html"],
       "matches": ["<all_urls>"]
     }
   ],

@@ -48,7 +48,13 @@ function createNoteElement(noteObj) {
   li.querySelector('.note-text').textContent = noteObj.text;
   li.dataset.url = noteObj.url;
 
-  console.log('Create <li> with noteId:', li.dataset.noteId);
+  if (noteObj.image) {
+    const img = document.createElement('img');
+    img.src = noteObj.image;
+    img.style.maxWidth = '100%';
+    li.insertBefore(img, li.querySelector('.note-actions'));
+  }
+
   return li;
 }
 
